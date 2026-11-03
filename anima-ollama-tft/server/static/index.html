@@ -1,0 +1,965 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#020b0e">
+  <meta name="color-scheme" content="dark">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="ANIMA">
+  <meta name="description" content="ANIMA · Asistente personal">
+  <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="icon" href="/icons/anima-192.png" type="image/png">
+  <link rel="apple-touch-icon" href="/icons/anima-180.png">
+  <title>ANIMA</title>
+  <style>
+    :root{color-scheme:dark;--bg:#020b0e;--panel:#07171b;--teal:#35e6ce;--mint:#9af7e9;--text:#e8fffb;--muted:#719894;--danger:#ff7185;--line:rgba(53,230,206,.16);--safe-bottom:env(safe-area-inset-bottom,0px)}
+    *{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;background:var(--bg);color:var(--text);font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+    body{height:100dvh;overflow:hidden;position:relative}
+    body:before{content:"";position:fixed;inset:0;z-index:0;background:url('/branding/anima-wallpaper.webp') center 43%/cover no-repeat;opacity:.105;pointer-events:none}
+    body:after{content:"";position:fixed;inset:0;z-index:0;background:linear-gradient(180deg,rgba(2,11,14,.18),rgba(2,11,14,.34) 48%,rgba(2,11,14,.82));pointer-events:none}
+    button,textarea{font:inherit}button{cursor:pointer;-webkit-tap-highlight-color:transparent}
+    .app{position:relative;z-index:1;height:100dvh;width:min(100%,900px);margin:0 auto;display:flex;flex-direction:column;padding:0 18px calc(10px + var(--safe-bottom))}
+    .topbar{height:64px;flex:0 0 64px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--line)}
+    .brandmark{width:38px;height:44px;overflow:hidden;display:flex;align-items:center;justify-content:center;flex:0 0 auto}
+    .brandmark img{height:45px;width:36px;object-fit:cover;object-position:center 40%;filter:drop-shadow(0 0 8px rgba(53,230,206,.18))}
+    .brand{font-size:20px;letter-spacing:.24em;font-weight:760;color:#7debdc;text-shadow:0 0 18px rgba(53,230,206,.12)}
+    .top-actions{margin-left:auto;display:flex;align-items:center;gap:8px}
+    .connection-dot{width:7px;height:7px;border-radius:50%;background:var(--teal);box-shadow:0 0 9px var(--teal);margin:0 6px}
+    .connection-dot.off{background:var(--danger);box-shadow:0 0 9px var(--danger)}
+    .connection-dot.busy{animation:pulse 1.1s ease-in-out infinite}
+    .icon-btn{width:38px;height:38px;border:0;border-radius:12px;background:transparent;color:#8ddfd3;display:grid;place-items:center;opacity:.8}
+    .icon-btn:hover,.icon-btn:focus-visible{background:rgba(53,230,206,.09);opacity:1;outline:none}
+    .icon-btn:active{transform:scale(.95)}.icon-btn svg{width:19px;height:19px}.icon-btn[hidden]{display:none}
+    .chat{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:20px 2px 22px;scrollbar-width:thin;scrollbar-color:rgba(53,230,206,.18) transparent}
+    .welcome{height:100%;min-height:160px;display:grid;place-items:center;text-align:center;color:rgba(181,226,219,.68);font-size:13px;letter-spacing:.035em}
+    .welcome span{padding:8px 14px;border-radius:999px;background:rgba(2,13,16,.22);backdrop-filter:blur(3px)}
+    .message{display:flex;margin:12px 0;animation:appear .2s ease-out}.message.user{justify-content:flex-end}.message.assistant{justify-content:flex-start}
+    @keyframes appear{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
+    .bubble-wrap{max-width:min(84%,680px)}
+    .bubble{padding:11px 14px;border-radius:16px;white-space:pre-wrap;overflow-wrap:anywhere;font-size:14px;line-height:1.58;backdrop-filter:blur(8px)}
+    .assistant .bubble{background:rgba(5,24,27,.82);border:1px solid rgba(53,230,206,.13);border-left:2px solid rgba(53,230,206,.65);border-bottom-left-radius:5px}
+    .user .bubble{background:rgba(12,82,75,.88);border:1px solid rgba(94,238,215,.2);border-bottom-right-radius:5px}
+    .typing{display:inline-flex;gap:5px;align-items:center;height:16px}.typing i{width:5px;height:5px;border-radius:50%;background:var(--teal);animation:bounce 1s infinite ease-in-out}.typing i:nth-child(2){animation-delay:.14s}.typing i:nth-child(3){animation-delay:.28s}
+    @keyframes bounce{0%,60%,100%{transform:translateY(0);opacity:.35}30%{transform:translateY(-5px);opacity:1}}
+    @keyframes pulse{50%{opacity:.3;transform:scale(.8)}}
+    .composer-wrap{flex:0 0 auto;padding-top:10px;border-top:1px solid var(--line);background:linear-gradient(180deg,rgba(2,11,14,0),rgba(2,11,14,.75) 28%)}
+    .composer{display:flex;align-items:flex-end;gap:8px;padding:6px 7px 6px 13px;border:1px solid rgba(53,230,206,.2);border-radius:18px;background:rgba(4,19,22,.9);backdrop-filter:blur(14px);box-shadow:0 8px 30px rgba(0,0,0,.15)}
+    textarea{flex:1;resize:none;border:0;outline:0;background:transparent;color:var(--text);min-height:42px;max-height:128px;padding:11px 3px 8px;font-size:15px;line-height:1.4}textarea::placeholder{color:#648986}textarea.live{color:var(--mint);caret-color:var(--teal)}
+    .mic{height:42px;width:42px;flex:0 0 42px;border:1px solid rgba(53,230,206,.18);border-radius:13px;background:transparent;color:#8ddfd3;display:grid;place-items:center;transition:transform .15s,background .15s,color .15s}
+    .mic:active{transform:scale(.94)}.mic svg{width:19px;height:19px}.mic:disabled{opacity:.35;cursor:default}.mic.recording{background:rgba(255,75,102,.17);border-color:rgba(255,113,133,.65);color:#ff7185;animation:pulse 1.1s ease-in-out infinite}
+    .listen{margin:8px 0 0 2px;padding:6px 10px;border:1px solid rgba(53,230,206,.2);border-radius:999px;background:rgba(53,230,206,.07);color:#9af7e9;font-size:11px}
+    .send{height:42px;width:43px;flex:0 0 43px;border:0;border-radius:13px;background:var(--teal);color:#03201d;display:grid;place-items:center;transition:transform .15s,opacity .15s}
+    .send:active{transform:scale(.94)}.send svg{width:19px;height:19px}.send:disabled{opacity:.35;cursor:default}
+    .toast{position:fixed;z-index:10;left:50%;bottom:calc(22px + var(--safe-bottom));transform:translate(-50%,12px);opacity:0;pointer-events:none;background:#0d292c;border:1px solid var(--line);color:var(--mint);padding:10px 15px;border-radius:12px;font-size:12px;transition:.22s;max-width:90vw;text-align:center}.toast.show{opacity:1;transform:translate(-50%,0)}
+    .modal-backdrop{display:none;position:fixed;inset:0;z-index:20;background:#000a;backdrop-filter:blur(7px);padding:22px;place-items:center}.modal-backdrop.show{display:grid}.modal{width:min(390px,100%);border:1px solid var(--line);border-radius:18px;background:#07191d;padding:20px;box-shadow:0 20px 60px #000b}.modal h3{margin:0 0 9px;color:var(--mint);letter-spacing:.12em}.modal p,.modal li{font-size:13px;color:#a0c2bd;line-height:1.6}.modal ol{padding-left:20px}.modal button{margin-top:8px;border:0;background:var(--teal);color:#03201f;font-weight:700;padding:10px 16px;border-radius:10px}
+    @media(min-width:700px){.app{padding-left:28px;padding-right:28px}.topbar{height:70px;flex-basis:70px}.chat{padding-left:10px;padding-right:10px}.bubble{font-size:14px}}
+    /* ══════════════════════════════════════════════════════════════════════
+       MODO CONVERSACIÓN · pantalla completa de voz
+       Portal central con el rostro de ANIMA, anillos y ondas laterales.
+       ══════════════════════════════════════════════════════════════════════ */
+    .voice{position:fixed;inset:0;z-index:40;display:none;place-items:center;background:radial-gradient(circle at 50% 42%,#04252b 0%,#03171c 42%,#010c10 100%)}
+    .voice.show{display:grid}
+    .voice::before{content:"";position:absolute;inset:0;background:url('/branding/anima-wallpaper.webp') center 40%/cover no-repeat;opacity:.05;pointer-events:none}
+    .voice-inner{position:relative;width:min(100%,560px);max-height:100%;padding:20px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:clamp(14px,2.6vh,28px);overflow-y:auto}
+    .voice-head{display:flex;align-items:center;gap:9px;font-size:11px;letter-spacing:.22em;color:#4e7b78;text-transform:uppercase;font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+    .voice-head i{width:6px;height:6px;border-radius:50%;background:var(--teal);box-shadow:0 0 8px var(--teal);animation:pulse 2s ease-in-out infinite}
+
+    /* Escenario: retrato + ondas laterales + anillos.
+       El tamaño se calcula con min() para que quepa siempre: si el alto manda
+       (móvil apaisado), el cuadrado se encoge y las ondas siguen alineadas. */
+    .portal-stage{position:relative;width:min(100%,52vh);aspect-ratio:1/1;display:grid;place-items:center;margin:0 auto}
+    .ring{position:absolute;border:1px solid rgba(53,230,206,.22);border-radius:50%;pointer-events:none}
+    .ring.r1{width:78%;height:78%;animation:ringBreath 5.5s ease-in-out infinite}
+    .ring.r2{width:96%;height:96%;border-color:rgba(53,230,206,.13);animation:ringBreath 5.5s ease-in-out infinite .7s}
+    @keyframes ringBreath{0%,100%{transform:scale(1);opacity:.55}50%{transform:scale(1.035);opacity:.9}}
+
+    /* Anillos que emanan al hablar (solo en estado hablando) */
+    .pulse-ring{position:absolute;width:78%;height:78%;border-radius:50%;border:1.5px solid rgba(53,230,206,.5);opacity:0;pointer-events:none}
+    .voice[data-state="speaking"] .pulse-ring{animation:emit 2.4s ease-out infinite}
+    .voice[data-state="speaking"] .pulse-ring:nth-of-type(2){animation-delay:.8s}
+    .voice[data-state="speaking"] .pulse-ring:nth-of-type(3){animation-delay:1.6s}
+    @keyframes emit{0%{transform:scale(.86);opacity:.75}100%{transform:scale(1.32);opacity:0}}
+
+    /* Portal con el rostro */
+    .portal{position:relative;width:62%;aspect-ratio:1/1;border-radius:50%;overflow:hidden;background:radial-gradient(circle at 50% 45%,#0a4a4d 0%,#052b30 55%,#02181d 100%);box-shadow:0 0 0 1px rgba(53,230,206,.35),0 0 46px rgba(53,230,206,.16),inset 0 0 40px rgba(2,11,14,.7);display:grid;place-items:center}
+    .portal img{width:100%;height:100%;object-fit:cover;display:block;filter:drop-shadow(0 0 12px rgba(53,230,206,.35));transition:transform .6s ease,opacity .6s ease;opacity:.94}
+    .voice[data-state="listening"] .portal img{transform:scale(1.02)}
+    .voice[data-state="speaking"] .portal img{animation:faceTalk 2.6s ease-in-out infinite}
+    @keyframes faceTalk{0%,100%{transform:scale(1);opacity:.94}50%{transform:scale(1.045);opacity:1}}
+    .voice[data-state="thinking"] .portal img{animation:faceThink 1.8s ease-in-out infinite}
+    @keyframes faceThink{0%,100%{opacity:.72}50%{opacity:1}}
+
+    /* Halo que late al ritmo de la voz */
+    .portal-glow{position:absolute;inset:-6%;border-radius:50%;background:radial-gradient(circle,rgba(53,230,206,.22) 0%,transparent 68%);opacity:0;transition:opacity .4s ease;pointer-events:none}
+    .voice[data-state="listening"] .portal-glow,.voice[data-state="speaking"] .portal-glow{opacity:1}
+
+    /* Ondas laterales (visualizador) */
+    .wave{position:absolute;top:50%;transform:translateY(-50%);width:19%;height:38%;display:flex;align-items:center;gap:3px;pointer-events:none}
+    .wave.left{left:0;justify-content:flex-end}
+    .wave.right{right:0;justify-content:flex-start}
+    .wave i{flex:1;min-width:2px;max-width:4px;border-radius:99px;background:linear-gradient(180deg,var(--mint),var(--teal));box-shadow:0 0 7px rgba(53,230,206,.55);height:14%;transition:height .09s linear}
+    .voice[data-state="idle"] .wave i,.voice[data-state="denied"] .wave i{height:6%;opacity:.35;box-shadow:none}
+    /* Aviso de inactividad: el portal se apaga y las ondas se quedan quietas. */
+    .voice[data-state="warn"] .portal img{opacity:.5;filter:drop-shadow(0 0 8px rgba(255,193,120,.25))}
+    .voice[data-state="warn"] .portal{box-shadow:0 0 0 1px rgba(255,193,120,.35),0 0 40px rgba(255,193,120,.1),inset 0 0 40px rgba(2,11,14,.7)}
+    .voice[data-state="warn"] .wave i{height:6%;opacity:.28;box-shadow:none}
+    .voice[data-state="warn"] .ring{border-color:rgba(255,193,120,.18)}
+    .voice[data-state="thinking"] .wave i{height:9%;opacity:.55;animation:waveIdle 1.6s ease-in-out infinite}
+    .voice[data-state="thinking"] .wave i:nth-child(odd){animation-delay:.24s}
+    @keyframes waveIdle{0%,100%{height:8%}50%{height:26%}}
+    /* En escucha el volumen real mueve las barras desde JS; si hay silencio
+       total, este latido suave evita que la pantalla parezca congelada. */
+    .voice[data-state="listening"] .wave i{animation:waveBreathe 3.4s ease-in-out infinite}
+    .voice[data-state="listening"] .wave i:nth-child(3n){animation-delay:.5s}
+    .voice[data-state="listening"] .wave i:nth-child(3n+1){animation-delay:1s}
+    @keyframes waveBreathe{0%,100%{opacity:.55}50%{opacity:1}}
+
+    /* Texto de estado */
+    .voice-caption{font-size:15px;letter-spacing:.04em;color:var(--mint);text-align:center;min-height:22px;transition:color .3s}
+    .voice-caption small{display:block;margin-top:7px;font-size:12px;letter-spacing:.03em;color:#5d8a86}
+    .voice-caption .dots::after{content:"";animation:dots 1.5s steps(4,end) infinite}
+    @keyframes dots{0%{content:""}25%{content:"."}50%{content:".."}75%{content:"..."}}
+
+    /* Transcripción en vivo dentro del popup */
+    .voice-transcript{width:100%;max-width:430px;min-height:58px;max-height:22vh;overflow-y:auto;padding:12px 16px;border:1px solid rgba(53,230,206,.18);border-radius:14px;background:rgba(4,24,28,.62);backdrop-filter:blur(9px);color:#d8f7f2;font-size:14px;line-height:1.55;text-align:center;scrollbar-width:thin;scrollbar-color:rgba(53,230,206,.2) transparent}
+    .voice-transcript[hidden]{display:none}
+    .voice-transcript .interim{color:#84aba7}
+    .voice-answer{color:var(--mint)}
+
+    /* Botonera */
+    .voice-actions{display:flex;align-items:center;justify-content:center;gap:14px}
+    .voice-btn{width:64px;height:64px;border-radius:50%;border:1px solid rgba(53,230,206,.3);background:rgba(53,230,206,.08);color:var(--mint);display:grid;place-items:center;transition:transform .15s,background .2s,color .2s,border-color .2s}
+    .voice-btn svg{width:26px;height:26px}
+    .voice-btn:active{transform:scale(.94)}
+    .voice-btn:focus-visible{outline:2px solid var(--teal);outline-offset:3px}
+    .voice-btn.stop{border-color:rgba(255,113,133,.5);background:rgba(255,113,133,.12);color:var(--danger)}
+    .voice-btn.muted{opacity:.45;pointer-events:none}
+
+    /* Botón de cerrar (arriba a la derecha) */
+    .voice-close{position:absolute;top:calc(14px + env(safe-area-inset-top,0px));right:14px;width:42px;height:42px;border-radius:12px;border:0;background:transparent;color:#6f9b97;display:grid;place-items:center}
+    .voice-close svg{width:20px;height:20px}
+    .voice-close:hover,.voice-close:focus-visible{background:rgba(53,230,206,.1);color:var(--mint);outline:none}
+
+    /* Pista de ayuda */
+    .voice-hint{font-size:11px;letter-spacing:.05em;color:#4a7370;text-align:center;max-width:320px;line-height:1.6}
+
+    @media(max-height:620px){.portal-stage{width:min(100%,38vh)}.voice-inner{gap:12px}.voice-caption{font-size:14px}}
+    @media(min-width:900px){.voice-inner{width:min(100%,620px)}}
+
+    @media(prefers-reduced-motion:reduce){.ring,.pulse-ring,.portal img,.portal-glow,.wave i{animation:none!important}}
+  </style>
+</head>
+<body>
+<div class="app">
+  <header class="topbar">
+    <div class="brandmark" aria-hidden="true"><img src="/branding/anima-mark.webp" alt=""></div>
+    <div class="brand">ANIMA</div>
+    <div class="top-actions">
+      <span class="connection-dot" id="connectionDot" role="img" aria-label="Conectando" title="Conectando"></span>
+      <button class="icon-btn" id="installBtn" type="button" aria-label="Instalar ANIMA" title="Instalar ANIMA">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m-5-5 5 5 5-5M4 17v3h16v-3"/></svg>
+      </button>
+      <button class="icon-btn" id="clearBtn" type="button" aria-label="Borrar conversación" title="Borrar conversación">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M10 11v6m4-6v6M6 7l1 14h10l1-14M9 7V4h6v3"/></svg>
+      </button>
+    </div>
+  </header>
+  <main class="chat" id="chat" aria-live="polite">
+    <div class="welcome" id="welcome"><span>¿En qué puedo ayudarte?</span></div>
+    <div id="messages"></div>
+  </main>
+  <div class="composer-wrap">
+    <form class="composer" id="form">
+      <textarea id="messageInput" rows="1" placeholder="Escribe a ANIMA…" aria-label="Mensaje para ANIMA" required></textarea>
+      <button class="mic" id="micBtn" type="button" aria-label="Grabar mensaje de voz" title="Hablar con ANIMA">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10v2a7 7 0 0 0 14 0v-2M12 19v3m-4 0h8"/></svg>
+      </button>
+      <button class="send" id="sendBtn" type="submit" aria-label="Enviar mensaje">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>
+      </button>
+    </form>
+  </div>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<div class="modal-backdrop" id="modalBackdrop"><section class="modal" role="dialog" aria-modal="true" aria-labelledby="installTitle"><h3 id="installTitle">ANIMA</h3><div id="installInstructions"></div><button id="closeModal" type="button">Entendido</button></section></div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════
+     MODO CONVERSACIÓN · se abre al pulsar el micrófono.
+     Ocupa la pantalla completa y oculta el chat para que la conversación
+     se sienta como una llamada, no como un formulario.
+     ═══════════════════════════════════════════════════════════════════════ -->
+<section class="voice" id="voiceMode" data-state="idle" role="dialog" aria-modal="true" aria-label="Conversación de voz con ANIMA" hidden>
+  <button class="voice-close" id="voiceClose" type="button" aria-label="Salir del modo voz">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+  </button>
+
+  <div class="voice-inner">
+    <div class="voice-head"><i></i> ANIMA · en línea</div>
+
+    <div class="portal-stage">
+      <!-- Ondas izquierda -->
+      <div class="wave left" id="waveLeft" aria-hidden="true"></div>
+      <!-- Ondas derecha -->
+      <div class="wave right" id="waveRight" aria-hidden="true"></div>
+
+      <div class="ring r1"></div>
+      <div class="ring r2"></div>
+      <div class="pulse-ring"></div>
+      <div class="pulse-ring"></div>
+      <div class="pulse-ring"></div>
+
+      <div class="portal">
+        <div class="portal-glow"></div>
+        <img src="/branding/anima-face.webp" alt="ANIMA" width="512" height="512" draggable="false">
+      </div>
+    </div>
+
+    <p class="voice-caption" id="voiceCaption" aria-live="polite">Preparando el micrófono…</p>
+
+    <div class="voice-transcript" id="voiceTranscript" hidden aria-live="polite"></div>
+
+    <div class="voice-actions">
+      <button class="voice-btn" id="voiceMic" type="button" aria-label="Silenciar micrófono">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10v2a7 7 0 0 0 14 0v-2M12 19v3m-4 0h8"/></svg>
+      </button>
+      <button class="voice-btn stop" id="voiceStop" type="button" aria-label="Parar a ANIMA" hidden>
+        <svg viewBox="0 0 24 24" fill="currentColor"><rect x="7" y="7" width="10" height="10" rx="2"/></svg>
+      </button>
+    </div>
+
+    <p class="voice-hint" id="voiceHint">Habla con naturalidad. Cuando calles unos segundos, ANIMA responderá sola.</p>
+  </div>
+</section>
+
+<script>
+(() => {
+  const $ = selector => document.querySelector(selector);
+  const chat = $('#chat'), messagesNode = $('#messages'), welcome = $('#welcome');
+  const form = $('#form'), input = $('#messageInput'), sendBtn = $('#sendBtn'), micBtn = $('#micBtn');
+  const connectionDot = $('#connectionDot'), toastNode = $('#toast');
+  const STORAGE_KEY = 'anima.pwa.chat.v2';
+  let messages = loadHistory(), busy = false, ws = null, reconnectTimer = null, installPrompt = null, recorder = null, micStream = null, recordedChunks = [];
+  let recordingMime = '', recordingPrefix = '', liveTranscriptionBusy = false, liveTranscriptionPending = false, liveTranscriptionTask = Promise.resolve();
+
+  function loadHistory() {
+    try {
+      const value = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+      return Array.isArray(value) ? value.filter(item => ['user','assistant'].includes(item.role) && typeof item.content === 'string').slice(-100) : [];
+    } catch { return []; }
+  }
+  function persist() {
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(messages.slice(-100))); }
+    catch { toast('No se pudo guardar el historial.'); }
+  }
+  function timeLabel(value) {
+    return new Intl.DateTimeFormat('es-ES', {hour:'2-digit',minute:'2-digit'}).format(new Date(value));
+  }
+  function scrollBottom() { requestAnimationFrame(() => { chat.scrollTop = chat.scrollHeight; }); }
+  function addMessage(role, content, timestamp=Date.now(), audioBlob=null) {
+    const item = {role, content, timestamp};
+    messages.push(item); messages = messages.slice(-100); persist(); renderMessage(item, audioBlob);
+    welcome.hidden = true; scrollBottom(); return item;
+  }
+  function renderMessage(item, audioBlob=null) {
+    const row = document.createElement('article'); row.className = `message ${item.role}`;
+    const wrap = document.createElement('div'); wrap.className = 'bubble-wrap';
+    const bubble = document.createElement('div'); bubble.className = 'bubble'; bubble.textContent = item.content;
+    wrap.append(bubble);
+    if (audioBlob && item.role === 'assistant') {
+      const audioUrl = URL.createObjectURL(audioBlob);
+      const audio = new Audio(audioUrl);
+      const listen = document.createElement('button');
+      listen.type = 'button'; listen.className = 'listen'; listen.textContent = '▶ Escuchar respuesta';
+      listen.addEventListener('click', () => { audio.currentTime = 0; audio.play().catch(() => toast('El navegador ha bloqueado la reproducción.')); });
+      audio.addEventListener('ended', () => { listen.textContent = '▶ Escuchar respuesta'; });
+      audio.addEventListener('play', () => { listen.textContent = 'Reproduciendo…'; });
+      wrap.append(listen);
+      audio.play().catch(() => toast('Respuesta preparada. Pulsa «Escuchar respuesta» para oírla.'));
+    }
+    row.append(wrap); messagesNode.append(row); return row;
+  }
+  function renderHistory() {
+    messagesNode.replaceChildren();
+    if (messages.length) { welcome.hidden = true; messages.forEach(renderMessage); }
+    else welcome.hidden = false;
+    scrollBottom();
+  }
+  function removeTyping() { $('#typingRow')?.remove(); }
+  function showTyping() {
+    removeTyping();
+    const row = document.createElement('article'); row.className = 'message assistant'; row.id = 'typingRow';
+    const wrap = document.createElement('div'); wrap.className = 'bubble-wrap';
+    const bubble = document.createElement('div'); bubble.className = 'bubble';
+    const dots = document.createElement('span'); dots.className = 'typing';
+    for (let i=0;i<3;i++) dots.append(document.createElement('i'));
+    bubble.append(dots); wrap.append(bubble); row.append(wrap); messagesNode.append(row); scrollBottom();
+  }
+  function setBusy(value) {
+    busy = value; sendBtn.disabled = value; input.disabled = value; micBtn.disabled = value;
+    connectionDot.classList.toggle('busy', value);
+    if (value) connectionDot.title = 'ANIMA está pensando';
+    else connectionDot.title = ws?.readyState === WebSocket.OPEN ? 'Conectada' : 'Sin conexión';
+  }
+  function setConnection(online, label) {
+    connectionDot.classList.toggle('off', !online);
+    connectionDot.title = busy ? 'ANIMA está pensando' : label;
+    connectionDot.setAttribute('aria-label', connectionDot.title);
+  }
+  function toast(message) {
+    toastNode.textContent = message; toastNode.classList.add('show');
+    clearTimeout(toastNode._timer); toastNode._timer = setTimeout(() => toastNode.classList.remove('show'), 2600);
+  }
+  function connectSocket() {
+    if (ws && [WebSocket.OPEN,WebSocket.CONNECTING].includes(ws.readyState)) return;
+    const scheme = location.protocol === 'https:' ? 'wss' : 'ws';
+    ws = new WebSocket(`${scheme}://${location.host}/ws`);
+    ws.onopen = () => setConnection(true, 'Conectada');
+    ws.onmessage = event => {
+      try {
+        const data = JSON.parse(event.data);
+        if (data.type === 'status' && data.value === 'thinking' && !busy) {
+          connectionDot.title = 'ANIMA está pensando'; connectionDot.classList.add('busy');
+        } else if (data.type === 'status' && data.value === 'connected' && !busy) {
+          connectionDot.classList.remove('busy'); setConnection(true, 'Conectada');
+        }
+        // Las respuestas HTTP se muestran en el chat una sola vez.
+        // El broadcast response sigue llegando a la TFT ESP8266.
+      } catch { /* Ignorar eventos inválidos. */ }
+    };
+    ws.onclose = () => { setConnection(false, 'Reconectando'); reconnectTimer = setTimeout(connectSocket, 1800); };
+    ws.onerror = () => { try { ws.close(); } catch {} };
+  }
+  async function checkHealth() {
+    try {
+      const response = await fetch('/health', {cache:'no-store'});
+      const data = await response.json();
+      const ok = response.ok && data.ok && data.model_available;
+      setConnection(ok, ok ? 'Conectada' : (data.ok ? 'Modelo no disponible' : 'Ollama desconectado'));
+    } catch { setConnection(false, 'Sin conexión'); }
+  }
+  async function sendMessage(raw, options={}) {
+    const {speak=false, alreadyBusy=false} = options;
+    const message = raw.trim(); if (!message || (busy && !alreadyBusy)) return;
+    const history = messages.slice(-20).map(item => ({role:item.role,content:item.content}));
+    addMessage('user', message); input.value=''; resizeInput(); setBusy(true); showTyping();
+    try {
+      const response = await fetch('/api/chat', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({message,history})
+      });
+      const data = await response.json(); removeTyping();
+      if (!response.ok || !data.ok) throw new Error(data.detail || 'No se pudo obtener respuesta.');
+      const answer = data.answer || 'No he recibido una respuesta.';
+      let audioBlob = null;
+      if (speak) {
+        try {
+          const voiceResponse = await fetch('/api/voice/speak', {
+            method:'POST', headers:{'Content-Type':'application/json'},
+            body:JSON.stringify({text:answer})
+          });
+          if (voiceResponse.ok) audioBlob = await voiceResponse.blob();
+          else toast('Respuesta recibida, pero no se pudo generar el audio.');
+        } catch { toast('Respuesta recibida, pero el servicio de voz no está disponible.'); }
+      }
+      addMessage('assistant', answer, Date.now(), audioBlob);
+    } catch (error) {
+      removeTyping(); addMessage('assistant', `No he podido conectar con ANIMA. ${error.message}`);
+      toast('No se pudo completar el mensaje.');
+    } finally {
+      setBusy(false); input.disabled=false; input.focus();
+      if (ws?.readyState === WebSocket.OPEN) setConnection(true, 'Conectada');
+    }
+  }
+  function resizeInput() { input.style.height='auto'; input.style.height=`${Math.min(input.scrollHeight,128)}px`; }
+
+  /* ═══════════════════════════════════════════════════════════════════════
+     MODO CONVERSACIÓN · motor de voz continuo
+     ───────────────────────────────────────────────────────────────────────
+     Cómo funciona el ciclo, en orden:
+
+       1. Al pulsar el micro se abre la pantalla y se pide permiso una vez.
+       2. Se graba con MediaRecorder en trozos cortos, para ir transcribiendo
+          mientras hablas (transcripción progresiva).
+       3. Un analizador de volumen mide el nivel del micro. Cuando detecta voz
+          y después 3 s seguidos de silencio, cierra el turno y lo envía.
+       4. La respuesta se pide al backend, se reproduce en voz alta y, al
+          terminar, se vuelve a escuchar automáticamente.
+       5. Si hablas mientras ANIMA responde, se corta el audio al instante y
+          empieza un turno nuevo: eso es la interrupción.
+     ═══════════════════════════════════════════════════════════════════════ */
+
+  const voiceMode = $('#voiceMode'), voiceCaption = $('#voiceCaption');
+  const voiceTranscript = $('#voiceTranscript'), voiceMic = $('#voiceMic');
+  const voiceStop = $('#voiceStop'), voiceHint = $('#voiceHint'), voiceClose = $('#voiceClose');
+
+  const VOICE = {
+    open: false,          // ¿está visible la pantalla de voz?
+    phase: 'idle',        // idle | listening | thinking | speaking | denied
+    stream: null,
+    recorder: null,
+    chunks: [],
+    audioCtx: null,
+    analyser: null,
+    levelTimer: null,
+    mime: '',
+    // Control de turno
+    turnStart: 0,         // timestamp del inicio del turno actual
+    lastVoiceAt: 0,       // última vez que se detectó voz
+    heardVoice: false,    // ¿se ha hablado en este turno?
+    idleWarned: false,    // ¿ya avisamos de que se va a cerrar por silencio?
+    sending: false,       // hay un turno en curso (evita solapamientos)
+    muted: false,         // el usuario ha silenciado el micro
+    loudFrames: 0,        // frames seguidos de voz fuerte (para interrumpir)
+    // Reproducción
+    audio: null,
+    audioUrl: null,
+    speakAbort: null,     // AbortController de la petición de TTS
+    // Transcripción progresiva
+    partialBusy: false,
+    partialPending: false,
+    partialText: '',      // lo último transcrito mientras hablabas
+  };
+
+  // Silencio necesario para cerrar el turno (ms). El usuario pidió ~3 s.
+  const SILENCE_MS = 3000;
+  // Tiempo máximo de un turno, para no quedarse grabando eternamente.
+  const MAX_TURN_MS = 60000;
+  // Si abres el micro y no dices nada, el popup se cierra solo. Sin esto se
+  // quedaría grabando y transcribiendo para siempre, gastando CPU y peticiones.
+  const IDLE_WARN_MS = 12000;    // aviso "¿sigues ahí?"
+  const MAX_IDLE_MS = 20000;     // cierre automático
+  // Umbral de volumen (0-1) para considerar que hay voz.
+  const VOICE_THRESHOLD = 0.012;
+  // Umbral más alto para INTERRUMPIR: tu voz directa es mucho más fuerte que el
+  // eco residual del altavoz, así que exigimos energía clara y sostenida.
+  const INTERRUPT_THRESHOLD = 0.045;
+  const INTERRUPT_FRAMES = 20;   // ~330 ms a 60 fps: evita cortes por golpes secos
+  // Cada cuánto se corta el audio para transcribir en vivo (ms).
+  const PARTIAL_SLICE_MS = 1800;
+  // Tope de fragmentos en memoria (~55 s de audio): red de seguridad contra
+  // sesiones olvidadas, para que el consumo de RAM no crezca sin freno.
+  const MAX_CHUNKS = 30;
+
+  const MIC_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10v2a7 7 0 0 0 14 0v-2M12 19v3m-4 0h8"/></svg>';
+  const MUTED_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5a3 3 0 0 1 6 0v5M9 9v5a3 3 0 0 0 4.5 2.6"/><path d="M5 10v2a7 7 0 0 0 10.5 6.1M19 10v2a7 7 0 0 1-.7 3.1M12 19v3m-4 0h8M3 3l18 18"/></svg>';
+
+  // Formato de audio que soporta este navegador, por orden de preferencia.
+  function recordingMimeType() {
+    if (!window.MediaRecorder) return '';
+    return ['audio/webm;codecs=opus', 'audio/mp4', 'audio/webm', 'audio/ogg;codecs=opus']
+      .find(type => MediaRecorder.isTypeSupported(type)) || '';
+  }
+
+  /* ── Visualizador: barras que siguen el volumen real ─────────────────── */
+  const waveBarsL = [], waveBarsR = [];
+  (function buildWave() {
+    const left = $('#waveLeft'), right = $('#waveRight');
+    const count = 9;
+    for (let i = 0; i < count; i++) {
+      const a = document.createElement('i');
+      const b = document.createElement('i');
+      left.append(a); right.append(b);
+      waveBarsL.push(a); waveBarsR.push(b);
+    }
+  })();
+
+  function paintWave(level) {
+    // Las barras del centro reaccionan más que las de los extremos, como un
+    // ecualizador real: el pico está junto al portal.
+    const all = waveBarsL.concat(waveBarsR);
+    all.forEach((bar, index) => {
+      const order = index < waveBarsL.length ? (waveBarsL.length - index) : (index - waveBarsL.length + 1);
+      const weight = 1 - (order - 1) / waveBarsL.length;
+      const h = 8 + Math.min(1, level * 3.4) * 82 * (0.35 + weight * 0.65);
+      bar.style.height = h.toFixed(1) + '%';
+    });
+  }
+
+  function resetWave() {
+    waveBarsL.concat(waveBarsR).forEach(bar => { bar.style.height = ''; });
+  }
+
+  /* ── Estado visual y textos ──────────────────────────────────────────── */
+  function setPhase(phase, caption, hint) {
+    VOICE.phase = phase;
+    voiceMode.dataset.state = phase;
+    if (caption !== undefined) voiceCaption.innerHTML = caption;
+    if (hint !== undefined) voiceHint.textContent = hint || '';
+    // El botón de parar solo se muestra mientras ANIMA habla: parar el
+    // pensamiento no aporta nada porque la petición va a completarse igual.
+    voiceStop.hidden = phase !== 'speaking';
+    voiceMic.classList.toggle('muted', VOICE.muted);
+    voiceMic.innerHTML = VOICE.muted ? MUTED_SVG : MIC_SVG;
+    voiceMic.setAttribute('aria-label', VOICE.muted ? 'Activar micrófono' : 'Silenciar micrófono');
+    if (phase === 'listening' || phase === 'thinking' || phase === 'speaking') resetWave();
+  }
+
+  function showTranscript(text, { interim = false, answer = false } = {}) {
+    if (!text) { voiceTranscript.hidden = true; voiceTranscript.replaceChildren(); return; }
+    voiceTranscript.hidden = false;
+    voiceTranscript.replaceChildren();
+    const span = document.createElement('span');
+    if (interim) span.className = 'interim';
+    if (answer) span.className = 'voice-answer';
+    span.textContent = text;
+    voiceTranscript.append(span);
+    voiceTranscript.scrollTop = voiceTranscript.scrollHeight;
+  }
+
+  /* ── Micrófono: abrir/cerrar y ciclo de escucha ──────────────────────── */
+  async function openVoiceMode() {
+    if (VOICE.open) return;
+    if (!window.isSecureContext || !navigator.mediaDevices?.getUserMedia) {
+      toast('El micrófono necesita HTTPS. Abre ANIMA mediante una dirección segura.');
+      return;
+    }
+    if (!window.MediaRecorder) { toast('Este navegador no permite grabar audio.'); return; }
+
+    VOICE.open = true;
+    voiceMode.hidden = false;
+    voiceMode.classList.add('show');
+    document.body.style.overflow = 'hidden';
+    setPhase('idle', 'Preparando el micrófono<span class="dots"></span>', '');
+
+    try {
+      await startMicrophone();
+      startListening();
+    } catch (error) {
+      handleMicError(error);
+    }
+  }
+
+  async function startMicrophone() {
+    if (VOICE.stream && VOICE.stream.active) return;
+    VOICE.stream = await navigator.mediaDevices.getUserMedia({
+      audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true }
+    });
+    VOICE.mime = recordingMimeType() || 'audio/webm';
+
+    // Analizador de volumen para detectar cuándo hablas y cuándo callas.
+    const Ctx = window.AudioContext || window.webkitAudioContext;
+    VOICE.audioCtx = new Ctx();
+    if (VOICE.audioCtx.state === 'suspended') await VOICE.audioCtx.resume();
+    const source = VOICE.audioCtx.createMediaStreamSource(VOICE.stream);
+    VOICE.analyser = VOICE.audioCtx.createAnalyser();
+    VOICE.analyser.fftSize = 1024;
+    VOICE.analyser.smoothingTimeConstant = 0.75;
+    source.connect(VOICE.analyser);
+
+    const buffer = new Uint8Array(VOICE.analyser.fftSize);
+    const tick = () => {
+      if (!VOICE.analyser) return;
+      VOICE.analyser.getByteTimeDomainData(buffer);
+      let sum = 0;
+      for (let i = 0; i < buffer.length; i++) {
+        const v = (buffer[i] - 128) / 128;
+        sum += v * v;
+      }
+      const rms = Math.sqrt(sum / buffer.length);
+      if (!VOICE.muted) {
+        paintWave(rms);
+        if (rms > VOICE_THRESHOLD) {
+          VOICE.heardVoice = true;
+          VOICE.lastVoiceAt = performance.now();
+        }
+        // Mientras ANIMA habla, tu voz sostenida la interrumpe. Usamos un umbral
+        // más alto (INTERRUPT_THRESHOLD) para no confundir el audio del altavoz
+        // con una intervención y cortar la respuesta sin querer.
+        if (VOICE.phase === 'speaking') {
+          if (rms > INTERRUPT_THRESHOLD) {
+            VOICE.loudFrames++;
+            if (VOICE.loudFrames >= INTERRUPT_FRAMES) { VOICE.loudFrames = 0; interrupt(); return; }
+          } else {
+            VOICE.loudFrames = Math.max(0, VOICE.loudFrames - 2);
+          }
+        } else {
+          VOICE.loudFrames = 0;
+        }
+      }
+      // En escucha activa, comprobamos si ya pasó el silencio suficiente.
+      // Incluimos 'warn' porque el aviso de inactividad cambia a ese estado y
+      // el turno debe seguir contando hasta cerrarse solo.
+      if ((VOICE.phase === 'listening' || VOICE.phase === 'warn') && !VOICE.sending) evaluateSilence();
+      VOICE.levelTimer = requestAnimationFrame(tick);
+    };
+    tick();
+  }
+
+  function stopMicrophone() {
+    if (VOICE.levelTimer) { cancelAnimationFrame(VOICE.levelTimer); VOICE.levelTimer = null; }
+    VOICE.analyser = null;
+    if (VOICE.audioCtx) { VOICE.audioCtx.close().catch(() => {}); VOICE.audioCtx = null; }
+    if (VOICE.stream) { VOICE.stream.getTracks().forEach(t => t.stop()); VOICE.stream = null; }
+  }
+
+  function startListening() {
+    if (!VOICE.open || VOICE.muted) return;
+    VOICE.heardVoice = false;
+    VOICE.idleWarned = false;
+    VOICE.partialText = '';
+    VOICE.turnStart = performance.now();
+    VOICE.lastVoiceAt = performance.now();
+    VOICE.chunks = [];
+    showTranscript('');
+    setPhase('listening', 'Te escucho<span class="dots"></span>', 'Habla con naturalidad. Cuando calles, ANIMA responderá sola.');
+
+    // Si el grabador existe y está activo, lo reiniciamos para empezar limpio.
+    if (VOICE.recorder && VOICE.recorder.state !== 'inactive') {
+      try { VOICE.recorder.stop(); } catch {}
+    }
+    try {
+      const mime = VOICE.mime || recordingMimeType();
+      VOICE.recorder = mime
+        ? new MediaRecorder(VOICE.stream, { mimeType: mime })
+        : new MediaRecorder(VOICE.stream);
+      VOICE.recorder.ondataavailable = event => {
+        if (event.data?.size) {
+          VOICE.chunks.push(event.data);
+          // Solo transcribimos en vivo si ya se ha detectado voz. El tope de
+          // fragmentos evita acumular audio sin límite si el usuario se olvida.
+          if (VOICE.chunks.length > MAX_CHUNKS) VOICE.chunks.shift();
+          if (VOICE.phase === 'listening') requestPartial();
+        }
+      };
+      VOICE.recorder.onerror = () => toast('Error durante la grabación del micrófono.');
+      VOICE.recorder.onstop = () => { /* el envío lo decide evaluateSilence */ };
+      VOICE.recorder.start(PARTIAL_SLICE_MS);
+    } catch (error) {
+      toast('No se pudo iniciar la grabación.');
+    }
+  }
+
+  function evaluateSilence() {
+    if (VOICE.sending) return;
+    const now = performance.now();
+    const sinceVoice = now - VOICE.lastVoiceAt;
+    const elapsed = now - VOICE.turnStart;
+
+    // Sin voz en todo el turno: no enviamos nada, pero tampoco esperamos eterno.
+    // A los 12 s avisamos y a los 20 s cerramos el popup y volvemos al chat.
+    if (!VOICE.heardVoice) {
+      if (elapsed >= MAX_IDLE_MS) { closeForIdle(); return; }
+      if (elapsed >= IDLE_WARN_MS && !VOICE.idleWarned) {
+        VOICE.idleWarned = true;
+        const restante = Math.ceil((MAX_IDLE_MS - elapsed) / 1000);
+        setPhase('warn', '¿Sigues ahí?',
+          `Si no dices nada, cerraré en ${restante} s.`);
+      }
+      return;
+    }
+    // Con voz y ya con silencio suficiente: cerramos el turno.
+    if (sinceVoice >= SILENCE_MS) {
+      finishTurn();
+      return;
+    }
+    // Un turno que empezó a hablar pero se quedó colgado también se corta.
+    if (elapsed >= MAX_TURN_MS) { finishTurn(); return; }
+  }
+
+  /* Cierre por inactividad: vuelve al chat y libera todos los recursos. */
+  function closeForIdle() {
+    if (!VOICE.open) return;
+    closeVoiceMode();
+    toast('Te has quedado en silencio. Cierro el micrófono.');
+  }
+
+  /* ── Transcripción progresiva mientras hablas ────────────────────────── */
+  function requestPartial() {
+    // Sin voz detectada no hay nada que transcribir: pedirlo gastaría CPU del
+    // motor de voz en cada fragmento aunque el micrófono esté en silencio.
+    if (!VOICE.heardVoice) return;
+    if (VOICE.partialBusy) { VOICE.partialPending = true; return; }
+    if (!VOICE.chunks.length) return;
+    const snapshot = VOICE.chunks.slice();
+    const type = VOICE.recorder?.mimeType || VOICE.mime || 'audio/webm';
+    const blob = new Blob(snapshot, { type });
+    if (blob.size < 5000) return;
+
+    VOICE.partialBusy = true;
+    fetch('/api/voice/transcribe?partial=true', {
+      method: 'POST', headers: { 'Content-Type': type }, body: blob
+    })
+      .then(response => response.json().then(data => ({ ok: response.ok, data })))
+      .then(({ ok, data }) => {
+        if (ok && data.ok && data.text && VOICE.phase === 'listening') {
+          VOICE.partialText = data.text;
+          showTranscript(data.text, { interim: true });
+        }
+      })
+      .catch(() => { /* la transcripción final volverá a procesar todo el audio */ })
+      .finally(() => {
+        VOICE.partialBusy = false;
+        if (VOICE.partialPending && VOICE.phase === 'listening') {
+          VOICE.partialPending = false;
+          requestPartial();
+        } else {
+          VOICE.partialPending = false;
+        }
+      });
+  }
+
+  /* ── Cierre del turno: transcribir, preguntar, hablar ────────────────── */
+  // MediaRecorder solo entrega el último trozo al pararse. Si leyéramos
+  // VOICE.chunks antes de stop(), una frase corta (menos de un timeslice)
+  // se quedaría sin audio y el turno se descartaría.
+  function stopRecorderAndCollect() {
+    return new Promise(resolve => {
+      const rec = VOICE.recorder;
+      if (!rec || rec.state === 'inactive') { resolve(VOICE.chunks.slice()); return; }
+      const finish = () => {
+        const collected = VOICE.chunks.slice();
+        rec.ondataavailable = null;
+        rec.onstop = null;
+        resolve(collected);
+      };
+      rec.onstop = finish;
+      try { rec.stop(); } catch { finish(); }
+    });
+  }
+
+  async function finishTurn() {
+    if (VOICE.sending) return;
+    VOICE.sending = true;
+    const type = VOICE.recorder?.mimeType || VOICE.mime || 'audio/webm';
+
+    const chunks = await stopRecorderAndCollect();
+    VOICE.chunks = [];
+
+    const blob = new Blob(chunks, { type });
+    if (!blob.size) { VOICE.sending = false; startListening(); return; }
+
+    setPhase('thinking', 'Procesando lo que has dicho<span class="dots"></span>', 'Un momento.');
+
+    let text = '';
+    try {
+      const response = await fetch('/api/voice/transcribe', {
+        method: 'POST', headers: { 'Content-Type': type }, body: blob
+      });
+      const data = await response.json();
+      if (!response.ok || !data.ok || !data.text) {
+        throw new Error(data.detail || 'No se ha reconocido ninguna frase.');
+      }
+      text = data.text.trim();
+    } catch (error) {
+      VOICE.sending = false;
+      toast(error.message || 'No se pudo procesar el audio.');
+      if (VOICE.open) startListening();
+      return;
+    }
+
+    if (!text) { VOICE.sending = false; if (VOICE.open) startListening(); return; }
+
+    showTranscript(text);
+    await askAndSpeak(text);
+  }
+
+  async function askAndSpeak(text) {
+    VOICE.sending = true;
+    setPhase('thinking', 'ANIMA está pensando<span class="dots"></span>', 'Puedes interrumpir cuando quiera.');
+    try {
+      const history = messages.slice(-20).map(item => ({ role: item.role, content: item.content }));
+      const response = await fetch('/api/chat', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: text, history })
+      });
+      const data = await response.json();
+      if (!response.ok || !data.ok) throw new Error(data.detail || 'No se pudo obtener respuesta.');
+      const answer = data.answer || 'No he recibido una respuesta.';
+
+      // El chat se mantiene sincronizado aunque no se vea: así al salir del
+      // modo voz sigue el hilo completo.
+      addMessage('user', text);
+      addMessage('assistant', answer);
+
+      showTranscript(answer, { answer: true });
+      await speak(answer);
+    } catch (error) {
+      toast(error.message || 'No se pudo completar el turno.');
+      if (VOICE.open) startListening();
+    } finally {
+      VOICE.sending = false;
+    }
+  }
+
+  /* ── Reproducción de la voz, interrumpible ───────────────────────────── */
+  async function speak(text) {
+    setPhase('speaking', 'ANIMA te responde', 'Habla cuando quieras para interrumpir.');
+    // Dejamos el micro grabando para poder detectar tu voz y cortar al instante.
+    keepCapturingWhileSpeaking();
+    try {
+      if (VOICE.speakAbort) VOICE.speakAbort.abort();
+      VOICE.speakAbort = new AbortController();
+      const response = await fetch('/api/voice/speak', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text }), signal: VOICE.speakAbort.signal
+      });
+      if (!response.ok) throw new Error('tts');
+      const blob = await response.blob();
+      if (!VOICE.open || VOICE.phase !== 'speaking') return;
+
+      VOICE.audioUrl = URL.createObjectURL(blob);
+      VOICE.audio = new Audio(VOICE.audioUrl);
+      VOICE.audio.onended = () => {
+        if (VOICE.phase === 'speaking' && !VOICE.sending) {
+          VOICE.sending = false;
+          startListening();
+        }
+      };
+      await VOICE.audio.play();
+    } catch (error) {
+      if (error?.name === 'AbortError') return;   // interrupción intencionada
+      // Sin voz sintetizada seguimos: el texto ya está en pantalla.
+      toast('Respuesta recibida, pero no se pudo generar el audio.');
+      if (VOICE.open && VOICE.phase === 'speaking') startListening();
+    }
+  }
+
+  function stopSpeaking() {
+    if (VOICE.speakAbort) { try { VOICE.speakAbort.abort(); } catch {} VOICE.speakAbort = null; }
+    if (VOICE.audio) {
+      try { VOICE.audio.pause(); } catch {}
+      VOICE.audio.onended = null;
+      VOICE.audio = null;
+    }
+    if (VOICE.audioUrl) { URL.revokeObjectURL(VOICE.audioUrl); VOICE.audioUrl = null; }
+  }
+
+  /* ── Interrupción: hablar mientras ANIMA responde ────────────────────── */
+  function interrupt() {
+    stopSpeaking();
+    VOICE.sending = false;
+    // Turno nuevo y limpio: sin voz heredada ni restos del anterior.
+    VOICE.heardVoice = false;
+    VOICE.loudFrames = 0;
+    VOICE.lastVoiceAt = performance.now();
+    startListening();
+  }
+
+  /* ── El micro sigue grabando durante la respuesta ────────────────────── */
+  // Sin esto, al empezar a hablar no habría grabador activo y la interrupción
+  // cortaría a ANIMA pero no capturaría lo que estás diciendo.
+  function keepCapturingWhileSpeaking() {
+    if (!VOICE.recorder || VOICE.recorder.state === 'inactive') {
+      if (!VOICE.stream || VOICE.muted) return;
+      VOICE.chunks = [];
+      try {
+        const mime = VOICE.mime || recordingMimeType();
+        VOICE.recorder = mime
+          ? new MediaRecorder(VOICE.stream, { mimeType: mime })
+          : new MediaRecorder(VOICE.stream);
+        VOICE.recorder.ondataavailable = event => {
+          if (event.data?.size) VOICE.chunks.push(event.data);
+        };
+        VOICE.recorder.start(PARTIAL_SLICE_MS);
+      } catch { /* sin grabador no hay interrupción posible; el botón sigue ahí */ }
+    }
+  }
+
+  /* ── Cierre del modo voz ─────────────────────────────────────────────── */
+  function closeVoiceMode() {
+    if (!VOICE.open) return;
+    VOICE.open = false;
+    stopSpeaking();
+    try { VOICE.recorder?.stop(); } catch {}
+    VOICE.recorder = null;
+    stopMicrophone();
+    // Estado limpio: sin esto, al reabrir el micro heredaríamos el aviso de
+    // inactividad del turno anterior y cerraría demasiado pronto.
+    VOICE.chunks = [];
+    VOICE.sending = false;
+    VOICE.heardVoice = false;
+    VOICE.idleWarned = false;
+    VOICE.partialBusy = false;
+    VOICE.partialPending = false;
+    VOICE.partialText = '';
+    VOICE.loudFrames = 0;
+    voiceMode.classList.remove('show');
+    voiceMode.hidden = true;
+    document.body.style.overflow = '';
+    setPhase('idle', 'Preparando el micrófono…', '');
+    showTranscript('');
+    input.focus();
+  }
+
+  function handleMicError(error) {
+    const denied = error?.name === 'NotAllowedError' || error?.name === 'SecurityError';
+    stopMicrophone();
+    setPhase('denied',
+      denied ? 'Micrófono bloqueado' : 'No se pudo abrir el micrófono',
+      denied ? 'Permite el acceso al micrófono en los ajustes del navegador y vuelve a intentarlo.' : 'Comprueba que hay un micrófono disponible.');
+    voiceStop.hidden = true;
+    toast(denied ? 'Debes permitir el acceso al micrófono.' : 'No se pudo iniciar el micrófono.');
+  }
+
+  /* ── Eventos ─────────────────────────────────────────────────────────── */
+  micBtn.addEventListener('click', openVoiceMode);
+  voiceClose.addEventListener('click', closeVoiceMode);
+
+  // Botón central: silenciar / reactivar el micro sin salir del modo voz.
+  voiceMic.addEventListener('click', () => {
+    VOICE.muted = !VOICE.muted;
+    if (VOICE.muted) {
+      stopSpeaking();
+      try { VOICE.recorder?.stop(); } catch {}
+      setPhase('idle', 'Micrófono en silencio', 'Pulsa el micrófono para volver a hablar.');
+    } else {
+      setPhase('idle', 'Reanudando<span class="dots"></span>', '');
+      startListening();
+    }
+    voiceMic.classList.toggle('muted', VOICE.muted);
+    voiceMic.innerHTML = VOICE.muted ? MUTED_SVG : MIC_SVG;
+    voiceMic.setAttribute('aria-label', VOICE.muted ? 'Activar micrófono' : 'Silenciar micrófono');
+  });
+
+  // Botón de parar: interrumpe a ANIMA y vuelve a escuchar.
+  voiceStop.addEventListener('click', interrupt);
+
+  // Escape cierra el modo voz.
+  document.addEventListener('keydown', event => {
+    if (event.key === 'Escape' && VOICE.open) closeVoiceMode();
+  });
+
+
+
+  form.addEventListener('submit', event => { event.preventDefault(); sendMessage(input.value); });
+  input.addEventListener('input', resizeInput);
+  input.addEventListener('keydown', event => {
+    if (event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); form.requestSubmit(); }
+  });
+  $('#clearBtn').addEventListener('click', () => {
+    if (!messages.length) { toast('No hay mensajes que borrar.'); return; }
+    if (!confirm('¿Borrar la conversación de este dispositivo?')) return;
+    messages=[]; persist(); renderHistory(); toast('Conversación borrada.');
+  });
+
+  function showInstallHelp() {
+    if (installPrompt) {
+      installPrompt.prompt();
+      installPrompt.userChoice.finally(() => { installPrompt=null; });
+      return;
+    }
+    const target = $('#installInstructions');
+    if (/iphone|ipad|ipod/i.test(navigator.userAgent)) {
+      target.innerHTML = '<p>Para añadir ANIMA al inicio:</p><ol><li>Abre esta página en Safari.</li><li>Pulsa <strong>Compartir</strong>.</li><li>Selecciona <strong>Añadir a pantalla de inicio</strong>.</li></ol>';
+    } else {
+      target.innerHTML = '<p>Abre el menú del navegador y selecciona <strong>Instalar aplicación</strong> o <strong>Añadir a pantalla de inicio</strong>.</p>';
+    }
+    $('#modalBackdrop').classList.add('show');
+  }
+  $('#installBtn').addEventListener('click', showInstallHelp);
+  $('#closeModal').addEventListener('click', () => $('#modalBackdrop').classList.remove('show'));
+  $('#modalBackdrop').addEventListener('click', event => { if (event.target.id === 'modalBackdrop') event.currentTarget.classList.remove('show'); });
+  window.addEventListener('beforeinstallprompt', event => { event.preventDefault(); installPrompt=event; });
+  window.addEventListener('appinstalled', () => { installPrompt=null; toast('ANIMA instalada.'); });
+
+  if ('serviceWorker' in navigator && window.isSecureContext) {
+    window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js').catch(() => toast('No se pudo activar el modo PWA.')));
+  }
+
+  renderHistory(); connectSocket(); checkHealth(); setInterval(checkHealth,45000);
+})();
+</script>
+</body>
+</html>

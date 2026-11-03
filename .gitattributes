@@ -1,0 +1,29 @@
+# Normaliza finales de línea: el firmware y los scripts deben funcionar
+# igual en cualquier sistema donde se clone el repositorio.
+* text=auto eol=lf
+
+# Firmware: archivos de texto, pero PlatformIO no debe recibir CRLF.
+*.cpp text eol=lf
+*.h   text eol=lf
+*.ini text eol=lf
+
+# Scripts ejecutables.
+*.py  text eol=lf
+*.sh  text eol=lf
+anima-stack.py text eol=lf
+
+# Binarios: Git no debe intentar diferenciarlos ni convertirlos.
+*.png  binary
+*.webp binary
+*.jpg  binary
+*.jpeg binary
+*.ico  binary
+*.onnx binary
+*.wav  binary
+*.mp3  binary
+
+# El modelo de voz se descarga, no se versiona; evitar diffs accidentales.
+*.onnx.json text eol=lf
+
+# Marca el lenguaje en GitHub para los estáticos.
+*.html linguist-language=HTML

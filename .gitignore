@@ -1,0 +1,100 @@
+# ═══════════════════════════════════════════════════════════════════════════
+#  ANIMA · .gitignore raíz del monorepo
+#  Red de seguridad: cada subproyecto tiene además su propio .gitignore.
+#  Regla de oro: nunca versionar entornos virtuales, secretos, modelos
+#  pesados ni artefactos de audio generados.
+# ═══════════════════════════════════════════════════════════════════════════
+
+# ── Secretos y configuración local ────────────────────────────────────────
+.env
+.env.*
+!.env.example
+secrets.h
+!secrets.example.h
+*.pem
+*.key
+*.p12
+*.pfx
+
+# ── Espacio de trabajo local del agente (AutoClaw) ────────────────────────
+.zwork/
+
+# ── Copias de seguridad y residuos del editor ─────────────────────────────
+backup/
+*.bak
+*.orig
+
+# ── Python ────────────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+dist/
+*.egg-info/
+.eggs/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.nox/
+
+# ── Entornos virtuales ────────────────────────────────────────────────────
+.venv/
+venv/
+ENV/
+env/
+env.bak/
+venv.bak/
+
+# ── Modelos y artefactos pesados ──────────────────────────────────────────
+# Los modelos ONNX de Piper y las cachés de Whisper se descargan aparte.
+# Motivo: el modelo de voz pesa 73 MB y no debe vivir en el historial Git.
+*.onnx
+*.onnx.json
+*.gguf
+*.safetensors
+# Audio generado por las pruebas locales.
+*.wav
+*.mp3
+*.webm
+*.ogg
+
+# ── PlatformIO / firmware ─────────────────────────────────────────────────
+.pio/
+.pioenvs/
+.piolibdeps/
+*.elf
+*.map
+
+# ── Sistema operativo ─────────────────────────────────────────────────────
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# ── Editores e IDE ────────────────────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.project
+.settings/
+*.code-workspace
+node_modules/
+
+# ── Logs y ejecución local ────────────────────────────────────────────────
+*.log
+logs/
+nohup.out
+
+

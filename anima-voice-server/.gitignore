@@ -1,0 +1,43 @@
+# ═══════════════════════════════════════════════════════════════════════════
+#  ANIMA · Motor de voz local (ASR Whisper + TTS Piper)
+# ═══════════════════════════════════════════════════════════════════════════
+
+# ── Entorno virtual del motor de voz ──────────────────────────────────────
+.venv/
+venv/
+env/
+
+# ── Python ────────────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# ── Modelos Piper (73 MB) ─────────────────────────────────────────────────
+# Solo los pesos se descargan aparte y quedan fuera de Git.
+# La configuración (.onnx.json, 5 KB) SÍ se versiona: sin ella el modelo no carga
+# y suele cambiar entre versiones del modelo.
+models/*.onnx
+!models/*.onnx.json
+!models/README.md
+
+# ── Caché de Whisper / Hugging Face ───────────────────────────────────────
+.cache/
+.cache-whisper/
+*.pt
+*.ct2/
+
+# ── Audio de salida de las pruebas ────────────────────────────────────────
+output/
+*.wav
+
+# ── Sistema operativo / editores ──────────────────────────────────────────
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp

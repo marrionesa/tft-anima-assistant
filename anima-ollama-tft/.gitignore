@@ -1,0 +1,47 @@
+# ═══════════════════════════════════════════════════════════════════════════
+#  ANIMA · Chat API + PWA + firmware TFT
+# ═══════════════════════════════════════════════════════════════════════════
+
+# ── Configuración local del backend ───────────────────────────────────────
+server/.env
+server/.env.*
+!server/.env.example
+
+# Credenciales WiFi / IP del PC para la NodeMCU.
+firmware/include/secrets.h
+!firmware/include/secrets.example.h
+
+# ── Python ────────────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# ── Entornos virtuales ────────────────────────────────────────────────────
+.venv/
+venv/
+env/
+
+# ── PlatformIO ────────────────────────────────────────────────────────────
+.pio/
+.pioenvs/
+.piolibdeps/
+*.elf
+*.map
+
+# ── Audio y artefactos locales ────────────────────────────────────────────
+*.wav
+*.mp3
+*.webm
+*.log
+
+# ── Sistema operativo / editores ──────────────────────────────────────────
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp

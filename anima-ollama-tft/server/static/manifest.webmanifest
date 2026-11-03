@@ -1,0 +1,37 @@
+{
+  "id": "/",
+  "name": "ANIMA",
+  "short_name": "ANIMA",
+  "description": "ANIMA · Asistente personal",
+  "lang": "es-ES",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "display_override": [
+    "standalone",
+    "minimal-ui"
+  ],
+  "orientation": "any",
+  "background_color": "#020b0e",
+  "theme_color": "#020b0e",
+  "icons": [
+    {
+      "src": "/icons/anima-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/anima-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/anima-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}
