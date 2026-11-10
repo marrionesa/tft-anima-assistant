@@ -26,6 +26,27 @@ Sin nube, sin claves de API, sin telemetría.
 | 📺 **Cuerpo físico** | Una NodeMCU con TFT ST7735 renderiza estado y respuestas en tiempo real. |
 | 🏠 **Solo tu red** | El ASR y el LLM escuchan únicamente en loopback. Nada se expone a Internet. |
 
+
+## Demostración — ANIMA en funcionamiento
+
+<div align="">
+
+<a href="docs/demo/demo-anima-tft.mp4">
+  <img
+    src="docs/demo/demo-anima-tft-poster.jpg"
+    alt="ANIMA funcionando con su pantalla TFT física"
+    width="50%%"
+  >
+</a>
+
+**ANIMA · Asistente de IA local con voz y pantalla TFT ESP8266**
+
+*Demostración en hardware real: inteligencia artificial local, interacción por voz y pantalla física.*
+
+[▶ Ver demostración completa](docs/demo/demo-anima-tft.mp4)
+
+</div>
+
 ## Anatomía del sistema
 
 <div align="center">
